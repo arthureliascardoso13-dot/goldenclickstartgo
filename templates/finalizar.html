@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="confete-container" id="confete"></div>
+
+<div class="sucesso-container">
+    <div class="sucesso-content">
+        <div class="check-mark">✓</div>
+        
+        <h1 class="titulo-sucesso">Compra Finalizada com Sucesso! 🎉</h1>
+        
+        <div class="mensagem-alegre">
+            <p class="msg-principal">Obrigado por comprar conosco! 💖</p>
+            <p class="msg-secundaria">Sua compra chegará em breve e com muito amor! 📦✨</p>
+            <p class="msg-info">Um grande obrigado por escolher a GoldenClick! Você é incrível! ⭐</p>
+        </div>
+        
+        <div class="resumo-pedido">
+            <h2>📋 Resumo do Seu Pedido</h2>
+            
+            <div class="itens-list">
+                {% for item in itens %}
+                <div class="item-finalizado">
+                    <img src="{{ item.imagem }}" alt="{{ item.nome }}">
+                    <div class="item-detalhe">
+                        <h4>{{ item.nome }}</h4>
+                        <p class="qtd">Quantidade: <strong>{{ item.quantidade }}x</strong></p>
+                        <p class="preco">R$ {{ item.preco }}</p>
+                    </div>
+                    <div class="subtotal">
+                        <p>R$ {{ item.subtotal }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="total-pagamento">
+                <h3>Total Pago: <span class="valor-total">R$ {{ total }}</span></h3>
+            </div>
+        </div>
+        
+        <div class="acoes-finais">
+            <a href="{{ url_for('index') }}" class="btn-continuar-compras">🏠 Voltar às Compras</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .confete-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+    }
+    
+    .sucesso-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .sucesso-content {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .check-mark {
+        font-size: 120px;
+        color: #28a745;
+        margin-bottom: 20px;
+        animation: pulsoCheck 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    @keyframes pulsoCheck {
+        0% {
+            transform: scale(0) rotate(-45deg);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+    }
+    
+    .titulo-sucesso {
+        font-size: 36px;
+        color: #333;
+        margin: 20px 0;
+        animation: slideDown 0.6s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .mensagem-alegre {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        padding: 30px;
+        border-radius: 15px;
+        margin: 30px 0;
+        animation: fadeIn 1s ease-out 0.3s both;
+    }
+    
+    .msg-principal {
+        font-size: 24px;
+        color: #d63031;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+    }
+    
+    .msg-secundaria {
+        font-size: 18px;
+        color: #555;
+        margin: 0 0 10px 0;
+    }
+    
+    .msg-info {
+        font-size: 16px;
+        color: #666;
+        margin: 0;
+        font-style: italic;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    .resumo-pedido {
+        margin: 40px 0;
+        text-align: left;
+    }
+    
+    .resumo-pedido h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 24px;
+    }
+    
+    .itens-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .item-finalizado {
+        display: flex;
+        gap: 20px;
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        align-items: center;
+        transition: all 0.3s;
+    }
+    
+    .item-finalizado:hover {
+        background: #f0f0f0;
+        transform: translateX(5px);
+    }
+    
+    .item-finalizado img {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: white;
+        padding: 10px;
+    }
+    
+    .item-detalhe {
+        flex: 1;
+    }
+    
+    .item-detalhe h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 18px;
+    }
+    
+    .item-detalhe .qtd,
+    .item-detalhe .preco {
+        margin: 5px 0;
+        color: #666;
+    }
+    
+    .subtotal {
+        text-align: right;
+        min-width: 100px;
+    }
+    
+    .subtotal p {
+        font-size: 18px;
+        font-weight: bold;
+        color: #B12704;
+        margin: 0;
+    }
+    
+    .total-pagamento {
+        background: linear-gradient(135deg, #ff9900 0%, #e68900 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        animation: slideUp 0.6s ease-out 0.5s both;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .total-pagamento h3 {
+        margin: 0;
+        font-size: 28px;
+    }
+    
+    .valor-total {
+        font-size: 32px;
+        display: block;
+        margin-top: 10px;
+    }
+    
+    .acoes-finais {
+        margin-top: 40px;
+        text-align: center;
+    }
+    
+    .btn-continuar-compras {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+        transition: all 0.3s;
+        animation: bounce 0.6s ease-out 0.8s both;
+    }
+    
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    
+    .btn-continuar-compras:hover {
+        background: #218838;
+        transform: scale(1.08);
+        box-shadow: 0 5px 20px rgba(40,167,69,0.4);
+    }
+    
+    @media (max-width: 768px) {
+        .sucesso-content {
+            padding: 20px;
+        }
+        
+        .titulo-sucesso {
+            font-size: 24px;
+        }
+        
+        .check-mark {
+            font-size: 80px;
+        }
+        
+        .item-finalizado {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .subtotal {
+            text-align: center;
+        }
+    }
+</style>
+
+<script>
+// Função para criar confete
+function criarConfete() {
+    const container = document.getElementById('confete');
+    const cores = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe', '#fd79a8', '#fdcb6e'];
+    const quantidade = 100;
+    
+    for(let i = 0; i < quantidade; i++) {
+        const confeti = document.createElement('div');
+        const cor = cores[Math.floor(Math.random() * cores.length)];
+        const tamanho = Math.random() * 10 + 5;
+        const delay = Math.random() * 0.5;
+        const duracao = Math.random() * 2 + 2.5;
+        
+        confeti.style.cssText = `
+            position: fixed;
+            left: ${Math.random() * 100}%;
+            top: -10px;
+            width: ${tamanho}px;
+            height: ${tamanho}px;
+            background: ${cor};
+            border-radius: 50%;
+            opacity: ${Math.random() * 0.7 + 0.3};
+            pointer-events: none;
+            animation: cair ${duracao}s linear ${delay}s forwards;
+        `;
+        
+        container.appendChild(confeti);
+    }
+}
+
+// Animação de queda do confete
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes cair {
+        to {
+            transform: translateY(100vh) rotateZ(720deg);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Inicia a animação quando a página carrega
+window.addEventListener('load', () => {
+    criarConfete();
+    // Cria mais confete a cada 500ms por 3 segundos
+    let ciclos = 0;
+    const intervalo = setInterval(() => {
+        criarConfete();
+        ciclos++;
+        if(ciclos >= 6) {
+            clearInterval(intervalo);
+        }
+    }, 500);
+});
+
+// Som de comemoração (opcional)
+window.addEventListener('load', () => {
+    // Toca um som se disponível (comentado por padrão)
+    // const audio = new Audio('data:audio/wav;base64,...');
+    // audio.play().catch(e => console.log('Som não disponível'));
+});
+</script>
+
+{% endblock %}

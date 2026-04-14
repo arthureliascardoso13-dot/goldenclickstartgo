@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GoldenClick</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">GoldenClick</div>
+
+<button onclick="history.back()" class="btn-voltar">⬅️ Voltar</button>
+
+<div class="menu-icon" onclick="toggleMenu()">☰</div>
+
+{% if session.usuario %}
+<div class="user-greeting">Olá, <strong>{{ session.usuario.nome.split()[0] }}</strong></div>
+{% endif %}
+
+<nav id="menu">
+<a href="/">🏠 Home</a>
+<a href="/favoritos">❤️ Favoritos</a>
+{% if session.usuario %}
+<a href="/trocar_conta">🔄 Trocar Conta</a>
+<a href="/logout">🚪 Sair (Logout)</a>
+{% else %}
+<a href="/login">🔑 Login</a>
+<a href="/cadastro">📝 Cadastro</a>
+{% endif %}
+<a href="#" onclick="abrirCarrinho(event)" class="carrinho">
+🛒
+<span class="badge">{{ total_carrinho }}</span>
+</a>
+</nav>
+
+</header>
+
+<div class="api-switcher">
+  <div class="api-switcher-inner">
+    <span class="api-label">API selecionada:</span>
+    <strong class="api-name">{{ api_selecionada|replace('_',' ')|title }}</strong>
+    <div class="api-actions">
+      <a href="{{ url_for('trocar_api', api_nome='dummyjson') }}" class="api-btn{% if api_selecionada == 'dummyjson' %} active{% endif %}">DummyJSON</a>
+      <a href="{{ url_for('trocar_api', api_nome='fakestore') }}" class="api-btn{% if api_selecionada == 'fakestore' %} active{% endif %}">FakeStore</a>
+    </div>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Overlay para fechar o carrinho -->
+<div id="carrinho-overlay" class="carrinho-overlay" onclick="fecharCarrinho()"></div>
+
+<!-- carrinho lateral -->
+<div id="carrinho-lateral" class="carrinho-lateral">
+    <div class="carrinho-header">
+        <h2>🛍️ Meu Carrinho</h2>
+        <button onclick="fecharCarrinho()" class="btn-fechar">✕</button>
+    </div>
+    <div id="lista-carrinho">
+        <div style="text-align: center; padding: 40px; color: #999;">
+            Carregando...
+        </div>
+    </div>
+    <div id="total-carrinho" style="display: none;"></div>
+    <div class="carrinho-acoes">
+        <a href="/carrinho" class="btn-ver-carrinho">Ver Carrinho Completo</a>
+        <button onclick="limparCarrinho()" class="btn-limpar-carrinho" id="btn-limpar-carrinho" style="display: none;">🗑️ Limpar Carrinho</button>
+        <button onclick="fecharCarrinho()" class="btn-fechar-carrinho">Fechar</button>
+    </div>
+</div>
+
+<div class="container">
+{% block content %}{% endblock %}
+</div>
+
+<script>
+
+function toggleMenu() {
+    const menu = document.getElementById("menu");
+    const menuIcon = document.querySelector(".menu-icon");
+    menu.classList.toggle("active");
+    menuIcon.classList.toggle("active");
+}
+
+function abrirCarrinho(event) {
+    if(event) event.preventDefault();
+    document.getElementById("carrinho-lateral").classList.add("ativo");
+    document.getElementById("carrinho-overlay").classList.add("ativo");
+    carregarCarrinho();
+}
+
+function fecharCarrinho() {
+    document.getElementById("carrinho-lateral").classList.remove("ativo");
+    document.getElementById("carrinho-overlay").classList.remove("ativo");
+}
+
+function limparCarrinho() {
+    if(confirm("Tem certeza que deseja limpar todo o carrinho?")) {
+        fetch("/limpar_carrinho", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "success") {
+                // Atualiza o badge do carrinho
+                document.querySelector(".badge").innerText = "0";
+                // Recarrega o carrinho lateral
+                carregarCarrinho();
+                // Mostra mensagem de sucesso
+                mostrarNotificacao("Carrinho limpo com sucesso!", "success");
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao limpar carrinho:", error);
+            mostrarNotificacao("Erro ao limpar carrinho", "error");
+        });
+    }
+}
+
+function mostrarNotificacao(mensagem, tipo) {
+    // Cria elemento de notificação
+    const notificacao = document.createElement("div");
+    notificacao.className = `notificacao notificacao-${tipo}`;
+    notificacao.innerHTML = mensagem;
+    notificacao.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${tipo === "success" ? "#4CAF50" : "#f44336"};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 5px;
+        z-index: 3000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    
+    document.body.appendChild(notificacao);
+    
+    // Remove após 3 segundos
+    setTimeout(() => {
+        notificacao.style.animation = "slideOut 0.3s ease";
+        setTimeout(() => {
+            notificacao.remove();
+        }, 300);
+    }, 3000);
+}
+
+function carregarCarrinho() {
+    fetch("/carrinho_json")
+    .then(res => res.json())
+    .then(data => {
+        let html = "";
+        let total = 0;
+        const btnLimpar = document.getElementById("btn-limpar-carrinho");
+        
+        if(data.length === 0) {
+            html = '<div style="text-align: center; padding: 50px 20px;">' +
+                   '<p style="font-size: 48px; margin: 0;">🛒</p>' +
+                   '<p style="color: #666; margin-top: 10px;">Seu carrinho está vazio</p>' +
+                   '<button onclick="fecharCarrinho()" style="margin-top: 20px; padding: 10px 20px; background: #ff9900; border: none; border-radius: 5px; cursor: pointer;">Continuar comprando</button>' +
+                   '</div>';
+            document.getElementById("total-carrinho").style.display = "none";
+            if(btnLimpar) btnLimpar.style.display = "none";
+        } else {
+            data.forEach(p => {
+                total += p.preco * p.qtd;
+                html += `
+                <div class="item-cart">
+                    <img src="${p.imagem}" alt="${p.nome}">
+                    <div class="item-info">
+                        <h4>${p.nome}</h4>
+                        <p class="item-preco">R$ ${p.preco.toFixed(2)}</p>
+                        <div class="item-qtd-controls">
+                            <button onclick="diminuirQuantidade(${p.id})" class="btn-qty-control">−</button>
+                            <span class="item-qtd">${p.qtd}</span>
+                            <button onclick="aumentarQuantidade(${p.id})" class="btn-qty-control">+</button>
+                        </div>
+                    </div>
+                    <button onclick="removerItem(${p.id})" class="btn-remover-item">🗑️</button>
+                </div>
+                `;
+            });
+            document.getElementById("total-carrinho").innerHTML = `<strong>Total: R$ ${total.toFixed(2)}</strong>`;
+            document.getElementById("total-carrinho").style.display = "block";
+            if(btnLimpar) btnLimpar.style.display = "block";
+        }
+        
+        document.getElementById("lista-carrinho").innerHTML = html;
+    })
+    .catch(error => {
+        console.error("Erro ao carregar carrinho:", error);
+        document.getElementById("lista-carrinho").innerHTML = '<div style="text-align: center; padding: 40px; color: red;">Erro ao carregar carrinho</div>';
+    });
+}
+
+function removerItem(id) {
+    fetch(`/remover_ajax/${id}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") {
+            // Atualiza o badge
+            document.querySelector(".badge").innerText = data.total;
+            // Recarrega o carrinho lateral
+            carregarCarrinho();
+            mostrarNotificacao("Item removido do carrinho!", "success");
+        }
+    })
+    .catch(error => {
+        console.error("Erro ao remover item:", error);
+        mostrarNotificacao("Erro ao remover item", "error");
+    });
+}
+
+function aumentarQuantidade(id) {
+    // Pega a quantidade atual do DOM
+    const qtdSpan = document.querySelector(`button[onclick="aumentarQuantidade(${id})"]`).parentElement.querySelector(".item-qtd");
+    const novaQtd = parseInt(qtdSpan.innerText) + 1;
+    
+    fetch(`/atualizar_quantidade/${id}/${novaQtd}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") {
+            document.querySelector(".badge").innerText = data.total;
+            carregarCarrinho();
+            mostrarNotificacao("Quantidade aumentada!", "success");
+        }
+    })
+    .catch(error => {
+        console.error("Erro ao aumentar quantidade:", error);
+        mostrarNotificacao("Erro ao atualizar quantidade", "error");
+    });
+}
+
+function diminuirQuantidade(id) {
+    // Pega a quantidade atual do DOM
+    const qtdSpan = document.querySelector(`button[onclick="diminuirQuantidade(${id})"]`).parentElement.querySelector(".item-qtd");
+    const qtdAtual = parseInt(qtdSpan.innerText);
+    const novaQtd = qtdAtual - 1;
+    
+    if(novaQtd <= 0) {
+        removerItem(id);
+        return;
+    }
+    
+    fetch(`/atualizar_quantidade/${id}/${novaQtd}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") {
+            document.querySelector(".badge").innerText = data.total;
+            carregarCarrinho();
+            mostrarNotificacao("Quantidade diminuída!", "success");
+        }
+    })
+    .catch(error => {
+        console.error("Erro ao diminuir quantidade:", error);
+        mostrarNotificacao("Erro ao atualizar quantidade", "error");
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // BOTÃO ADICIONAR AO CARRINHO
+    document.querySelectorAll(".add-btn").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const id = this.getAttribute("data-id");
+            const btnOriginal = this.textContent;
+            
+            this.textContent = "⏳ Adicionando...";
+            this.disabled = true;
+            
+            fetch(`/add_ajax/${id}`, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                document.querySelector(".badge").innerText = data.total;
+                this.textContent = "✓ Adicionado!";
+                this.style.background = "#4CAF50";
+                
+                // Se o carrinho estiver aberto, atualiza
+                if(document.getElementById("carrinho-lateral").classList.contains("ativo")) {
+                    carregarCarrinho();
+                }
+                
+                setTimeout(() => {
+                    this.textContent = "Adicionar ao Carrinho";
+                    this.style.background = "#ff9900";
+                    this.disabled = false;
+                }, 1500);
+            })
+            .catch(() => {
+                this.textContent = btnOriginal;
+                this.disabled = false;
+                alert("Erro ao adicionar ao carrinho");
+            });
+        });
+    });
+    
+    // BOTÃO FAVORITO
+    document.querySelectorAll(".fav").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = btn.getAttribute("data-id");
+            
+            fetch(`/favorito/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = data.status == "add" ? "❤️" : "🤍";
+            });
+        });
+    });
+    
+    // Fechar menu ao clicar em um link
+    document.querySelectorAll("nav a").forEach(link => {
+        link.addEventListener("click", () => {
+            document.getElementById("menu").classList.remove("active");
+            document.querySelector(".menu-icon").classList.remove("active");
+        });
+    });
+    
+    // Fechar carrinho com ESC
+    document.addEventListener("keydown", (e) => {
+        if(e.key === "Escape") {
+            fecharCarrinho();
+        }
+    });
+});
+
+// Adiciona animações CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .btn-remover-item {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 11px;
+        margin-top: 5px;
+        transition: background 0.2s;
+    }
+    
+    .btn-remover-item:hover {
+        background: #c82333;
+    }
+    
+    .btn-limpar-carrinho {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        flex: 1;
+    }
+    
+    .btn-limpar-carrinho:hover {
+        background: #c82333;
+        transform: scale(1.02);
+    }
+`;
+document.head.appendChild(style);
+
+</script>
+
+</body>
+</html>

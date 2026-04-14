@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="card" style="max-width:400px;margin:auto; text-align: center;">
+        <h2>Cadastro</h2>
+        <form method="post">
+            <input type="text" name="nome" placeholder="Nome" required style="width: 100%; padding:8px; margin-bottom:10px;"><br>
+            <input type="email" name="email" placeholder="Email" required style="width: 100%; padding:8px; margin-bottom:10px;"><br>
+            <input type="password" name="senha" placeholder="Senha" required style="width: 100%; padding:8px; margin-bottom:10px;"><br>
+            <button type="submit" style="background:black; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Cadastrar</button>
+        </form>
+
+        <!-- Botão Voltar ao Menu -->
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('index') }}">
+                <button style="background:gold; color:black; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                    Voltar ao Menu
+                </button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

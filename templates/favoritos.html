@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="filtros-container">
+    <h2>❤️ Meus Favoritos</h2>
+    <p class="resultados">Mostrando {{ produtos|length }} produtos favoritados</p>
+</div>
+
+{% if produtos %}
+<div class="produtos">
+    {% for p in produtos %}
+    <div class="card">
+        <button class="fav" data-id="{{p.id}}">❤️</button>
+        <a href="/produto/{{p.id}}" style="text-decoration: none; color: inherit;">
+            <img src="{{p.imagem}}" alt="{{p.nome}}">
+            <h3>{{p.nome}}</h3>
+            <p class="preco-antigo">R$ {{ "%.2f"|format(p.preco_original) }}</p>
+            <p class="preco">R$ {{ "%.2f"|format(p.preco) }}</p>
+            <p class="desconto">{{p.desconto}}% OFF</p>
+        </a>
+        <button data-id="{{p.id}}" class="btn add-btn">Adicionar ao Carrinho</button>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="sem-resultados">
+    <p>😕 Você ainda não favoritou nenhum produto.</p>
+    <a href="/" class="btn-limpar">Ver todos os produtos</a>
+</div>
+{% endif %}
+
+{% endblock %}

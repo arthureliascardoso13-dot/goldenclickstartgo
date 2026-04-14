@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="carrinho-container">
+    <h2>Seu Carrinho</h2>
+    
+    {% if carrinho %}
+        <div class="carrinho-items">
+            {% for p in carrinho %}
+            <div class="item-carrinho">
+                <img src="{{p.imagem}}" alt="{{p.nome}}">
+                <div class="item-details">
+                    <h3>{{p.nome}}</h3>
+                    <p class="item-preco">R$ {{p.preco}}</p>
+                    <p class="item-qtd">Quantidade: {{p.qtd}}</p>
+                    <a href="/remover/{{p.id}}" class="btn-remover-carrinho">🗑️ Remover</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="carrinho-footer">
+            <h2 class="total-final">Total: R$ {{total}}</h2>
+            <a href="/finalizar" class="btn-finalizar">✓ Finalizar Compra</a>
+            <a href="/" class="btn-continuar">Continuar Comprando</a>
+        </div>
+    {% else %}
+        <div class="carrinho-vazio">
+            <div class="carrinho-vazio-content">
+                <div class="carrinho-animado">🛒</div>
+                <h3>Seu carrinho está vazio</h3>
+                <p>Que tal adicionar alguns produtos incríveis?</p>
+                <a href="/" class="btn-voltar-compras">Voltar às Compras</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .carrinho-container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+    
+    .carrinho-container h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 28px;
+    }
+    
+    .carrinho-items {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .item-carrinho {
+        display: flex;
+        gap: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    
+    .item-carrinho:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .item-carrinho img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f5f5f5;
+        padding: 10px;
+    }
+    
+    .item-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .item-details h3 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 18px;
+    }
+    
+    .item-preco {
+        color: #B12704;
+        font-size: 20px;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+    
+    .item-qtd {
+        color: #666;
+        margin: 5px 0 10px 0;
+    }
+    
+    .btn-remover-carrinho {
+        display: inline-block;
+        background: #dc3545;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: all 0.2s;
+        width: fit-content;
+    }
+    
+    .btn-remover-carrinho:hover {
+        background: #c82333;
+        transform: scale(1.05);
+    }
+    
+    .carrinho-footer {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .total-final {
+        margin: 0;
+        color: #ff9900;
+        font-size: 26px;
+    }
+    
+    .btn-finalizar, .btn-continuar {
+        padding: 12px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+    
+    .btn-finalizar {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-finalizar:hover {
+        background: #218838;
+        transform: scale(1.05);
+    }
+    
+    .btn-continuar {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-continuar:hover {
+        background: #0056b3;
+        transform: scale(1.05);
+    }
+    
+    /* CARRINHO VAZIO */
+    .carrinho-vazio {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 500px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+        border-radius: 15px;
+        padding: 40px;
+    }
+    
+    .carrinho-vazio-content {
+        text-align: center;
+    }
+    
+    .carrinho-animado {
+        font-size: 120px;
+        margin-bottom: 20px;
+        animation: flutuarCarrinho 3s ease-in-out infinite;
+    }
+    
+    @keyframes flutuarCarrinho {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+            opacity: 1;
+        }
+        25% {
+            transform: translateY(-20px) rotate(5deg);
+        }
+        50% {
+            transform: translateY(-30px) rotate(0deg);
+        }
+        75% {
+            transform: translateY(-20px) rotate(-5deg);
+        }
+    }
+    
+    .carrinho-vazio-content h3 {
+        font-size: 24px;
+        color: #333;
+        margin: 20px 0 10px 0;
+    }
+    
+    .carrinho-vazio-content p {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+    
+    .btn-voltar-compras {
+        display: inline-block;
+        background: #ff9900;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+    
+    .btn-voltar-compras:hover {
+        background: #e68900;
+        transform: scale(1.08);
+        box-shadow: 0 5px 15px rgba(255,153,0,0.4);
+    }
+    
+    @media (max-width: 768px) {
+        .item-carrinho {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .item-details {
+            align-items: center;
+        }
+        
+        .carrinho-animado {
+            font-size: 80px;
+        }
+        
+        .carrinho-vazio {
+            min-height: 400px;
+        }
+    }
+</style>
+
+{% endblock %}

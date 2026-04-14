@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="filtros-container">
+    <h2>Produtos</h2>
+    <p class="resultados">Mostrando {{ produtos|length }} produtos</p>
+    
+    <form method="get" action="/" class="filtros-form">
+        <div class="filtros-row">
+            <div class="filtro-group">
+                <label>🔍 Buscar:</label>
+                <input type="text" name="busca" placeholder="Nome ou categoria..." value="{{ busca }}">
+            </div>
+            
+            <div class="filtro-group">
+                <label>📂 Categoria:</label>
+                <select name="categoria">
+                    <option value="todas" {% if categoria_selecionada == "todas" %}selected{% endif %}>Todas</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat }}" {% if categoria_selecionada == cat %}selected{% endif %}>{{ cat|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filtro-group">
+                <label>💰 Preço:</label>
+                <div class="preco-range">
+                    <input type="number" name="min_preco" placeholder="Mín" value="{{ min_preco or '' }}" step="10">
+                    <span>-</span>
+                    <input type="number" name="max_preco" placeholder="Máx" value="{{ max_preco or '' }}" step="10">
+                </div>
+            </div>
+            
+            <div class="filtro-group">
+                <label>📊 Ordenar por:</label>
+                <select name="ordenar">
+                    <option value="">Padrão</option>
+                    <option value="menor_preco" {% if ordenar == "menor_preco" %}selected{% endif %}>Menor preço</option>
+                    <option value="maior_preco" {% if ordenar == "maior_preco" %}selected{% endif %}>Maior preço</option>
+                    <option value="maior_desconto" {% if ordenar == "maior_desconto" %}selected{% endif %}>Maior desconto</option>
+                </select>
+            </div>
+            
+            <div class="filtro-group">
+                <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+                <a href="/" class="btn-limpar">Limpar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if produtos %}
+<div class="produtos">
+    {% for p in produtos %}
+    <div class="card">
+        <button class="fav" data-id="{{p.id}}">{% if p.favoritado %}❤️{% else %}🤍{% endif %}</button>
+        <a href="/produto/{{p.id}}" style="text-decoration: none; color: inherit;">
+            <img src="{{p.imagem}}" alt="{{p.nome}}">
+            <h3>{{p.nome}}</h3>
+            <p class="preco-antigo">R$ {{ "%.2f"|format(p.preco_original) }}</p>
+            <p class="preco">R$ {{ "%.2f"|format(p.preco) }}</p>
+            <p class="desconto">{{p.desconto}}% OFF</p>
+        </a>
+        <button data-id="{{p.id}}" class="btn add-btn">Adicionar ao Carrinho</button>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="sem-resultados">
+    <p>😕 Nenhum produto encontrado com os filtros selecionados.</p>
+    <a href="/" class="btn-limpar">Limpar filtros</a>
+</div>
+{% endif %}
+
+{% endblock %}

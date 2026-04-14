@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container produto-detalhes" style="gap: 40px;">
+
+    <div>
+        <img src="{{ produto.imagem }}" alt="{{ produto.nome }}" style="width:400px; border-radius:10px;">
+    </div>
+
+    <div>
+        <h2>{{ produto.nome }}</h2>
+
+        <p class="preco">R$ {{ produto.preco }}</p>
+
+        <p class="descricao">
+            {{ produto.descricao if produto.descricao else 'Descrição não disponível.' }}
+        </p>
+
+        <a href="{{ url_for('add_carrinho', id=produto.id) }}">
+            <button style="background:black; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                Comprar
+            </button>
+        </a>
+
+        <div style="margin-top: 20px;">
+            <a href="{{ request.referrer or url_for('index') }}">
+                <button style="background:gray; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; margin-right: 10px;">
+                    ← Voltar
+                </button>
+            </a>
+
+            <a href="{{ url_for('index') }}">
+                <button style="background:gold; color:black; padding:8px 16px; border:none; border-radius:5px; cursor:pointer;">
+                    🏠 Menu Inicial
+                </button>
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
